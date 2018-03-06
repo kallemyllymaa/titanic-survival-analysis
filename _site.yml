@@ -1,0 +1,11 @@
+name: "titanic-survival-analysis"
+navbar:
+  title: "Titanic survival analysis"
+  left:
+    - text: "Home"
+      href: index.html
+output_dir: "docs"
+output:
+  html_document:
+    theme: united
+exclude: ["LICENSE", "README.md"]
