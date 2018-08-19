@@ -2,4 +2,46 @@
 title: "Titanic survival analysis"
 ---
 
-Hello, Website!
+```{r}
+train <- read.csv('./data/train.csv')
+train$FamilySize <- train$SibSp + train$Parch + 1
+str(train)
+```
+
+```{r variables}
+library(rpart)
+# make explicit factor levels for specific variables: Sex + Pclass
+train$Sex <- as.factor(train$Sex)
+train$Pclass <- as.factor(train$Pclass)
+# now train on entire training set (714 rows)
+fol <- formula(Survived ~ Age + Sex + Pclass + FamilySize)
+model <- rpart(fol, method="class", data=train)
+library(rpart.plot) 
+rpart.plot(model,branch=0,branch.type=2,type=1,extra=102,shadow.col="pink",box.col="gray",split.col="magenta",
+  main="Decision tree for model")
+```
+
+```{r}
+library(randomForest)
+
+# Set a random seed
+set.seed(754)
+
+# Build the model (note: not all possible variables are used)
+rf_model <- randomForest(factor(Survived) ~ . - Name - Ticket - Cabin, data = train[!is.na(train$Age),])
+```
+
+```{r}
+rf_model
+```
+
+```{r}
+test <- read.csv('./data/test.csv')
+test$FamilySize <- test$SibSp + test$Parch + 1
+str(test)
+```
+
+```{r}
+#pred <- predict(rf_model, test)
+#table(pred, test$taste)
+```

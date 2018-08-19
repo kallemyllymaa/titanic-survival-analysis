@@ -20,8 +20,8 @@
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
-<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -30,10 +30,12 @@
   }
 </style>
 <script type="text/javascript">
-if (window.hljs && document.readyState && document.readyState === "complete") {
-   window.setTimeout(function() {
-      hljs.initHighlighting();
-   }, 0);
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
 }
 </script>
 
@@ -87,6 +89,9 @@ img {
 }
 .tabbed-pane {
   padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
 }
 button.code-folding-btn:focus {
   outline: none;
@@ -195,7 +200,73 @@ $(document).ready(function () {
 </div>
 
 
-<p>Hello, Website!</p>
+<pre class="r"><code>train &lt;- read.csv(&#39;./data/train.csv&#39;)
+train$FamilySize &lt;- train$SibSp + train$Parch + 1
+str(train)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    891 obs. of  13 variables:
+##  $ PassengerId: int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ Survived   : int  0 1 1 1 0 0 0 0 1 1 ...
+##  $ Pclass     : int  3 1 3 1 3 3 1 3 3 2 ...
+##  $ Name       : Factor w/ 891 levels &quot;Abbing, Mr. Anthony&quot;,..: 109 191 358 277 16 559 520 629 417 581 ...
+##  $ Sex        : Factor w/ 2 levels &quot;female&quot;,&quot;male&quot;: 2 1 1 1 2 2 2 2 1 1 ...
+##  $ Age        : num  22 38 26 35 35 NA 54 2 27 14 ...
+##  $ SibSp      : int  1 1 0 1 0 0 0 3 0 1 ...
+##  $ Parch      : int  0 0 0 0 0 0 0 1 2 0 ...
+##  $ Ticket     : Factor w/ 681 levels &quot;110152&quot;,&quot;110413&quot;,..: 524 597 670 50 473 276 86 396 345 133 ...
+##  $ Fare       : num  7.25 71.28 7.92 53.1 8.05 ...
+##  $ Cabin      : Factor w/ 148 levels &quot;&quot;,&quot;A10&quot;,&quot;A14&quot;,..: 1 83 1 57 1 1 131 1 1 1 ...
+##  $ Embarked   : Factor w/ 4 levels &quot;&quot;,&quot;C&quot;,&quot;Q&quot;,&quot;S&quot;: 4 2 4 4 4 3 4 4 4 2 ...
+##  $ FamilySize : num  2 2 1 2 1 1 1 5 3 2 ...</code></pre>
+<pre class="r"><code>library(rpart)
+# make explicit factor levels for specific variables: Sex + Pclass
+train$Sex &lt;- as.factor(train$Sex)
+train$Pclass &lt;- as.factor(train$Pclass)
+# now train on entire training set (714 rows)
+fol &lt;- formula(Survived ~ Age + Sex + Pclass + FamilySize)
+model &lt;- rpart(fol, method=&quot;class&quot;, data=train)
+library(rpart.plot) 
+rpart.plot(model,branch=0,branch.type=2,type=1,extra=102,shadow.col=&quot;pink&quot;,box.col=&quot;gray&quot;,split.col=&quot;magenta&quot;,
+  main=&quot;Decision tree for model&quot;)</code></pre>
+<p><img src="index_files/figure-html/variables-1.png" width="672" /></p>
+<pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-14</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code># Set a random seed
+set.seed(754)
+
+# Build the model (note: not all possible variables are used)
+rf_model &lt;- randomForest(factor(Survived) ~ . - Name - Ticket - Cabin, data = train[!is.na(train$Age),])</code></pre>
+<pre class="r"><code>rf_model</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(formula = factor(Survived) ~ . - Name - Ticket -      Cabin, data = train[!is.na(train$Age), ]) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 3
+## 
+##         OOB estimate of  error rate: 17.79%
+## Confusion matrix:
+##     0   1 class.error
+## 0 378  46   0.1084906
+## 1  81 209   0.2793103</code></pre>
+<pre class="r"><code>test &lt;- read.csv(&#39;./data/test.csv&#39;)
+test$FamilySize &lt;- test$SibSp + test$Parch + 1
+str(test)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    418 obs. of  12 variables:
+##  $ PassengerId: int  892 893 894 895 896 897 898 899 900 901 ...
+##  $ Pclass     : int  3 3 2 3 3 3 3 2 3 3 ...
+##  $ Name       : Factor w/ 418 levels &quot;Abbott, Master. Eugene Joseph&quot;,..: 210 409 273 414 182 372 85 58 5 104 ...
+##  $ Sex        : Factor w/ 2 levels &quot;female&quot;,&quot;male&quot;: 2 1 2 2 1 2 1 2 1 2 ...
+##  $ Age        : num  34.5 47 62 27 22 14 30 26 18 21 ...
+##  $ SibSp      : int  0 1 0 0 1 0 0 1 0 2 ...
+##  $ Parch      : int  0 0 0 0 1 0 0 1 0 0 ...
+##  $ Ticket     : Factor w/ 363 levels &quot;110469&quot;,&quot;110489&quot;,..: 153 222 74 148 139 262 159 85 101 270 ...
+##  $ Fare       : num  7.83 7 9.69 8.66 12.29 ...
+##  $ Cabin      : Factor w/ 77 levels &quot;&quot;,&quot;A11&quot;,&quot;A18&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ Embarked   : Factor w/ 3 levels &quot;C&quot;,&quot;Q&quot;,&quot;S&quot;: 2 3 2 3 3 3 2 3 1 3 ...
+##  $ FamilySize : num  1 2 1 1 3 1 1 3 1 3 ...</code></pre>
+<pre class="r"><code>#pred &lt;- predict(rf_model, test)
+#table(pred, test$taste)</code></pre>
 
 
 

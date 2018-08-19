@@ -8,4 +8,4 @@ output_dir: "docs"
 output:
   html_document:
     theme: united
-exclude: ["LICENSE", "README.md"]
+exclude: ["LICENSE", "README.md", "/data/*"]
